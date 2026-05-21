@@ -113,12 +113,15 @@
                         if (pontos.length > 100) pontos.shift();
                         linha.setLatLngs(pontos);
                     }
-                    if (data.photo_front) {
+                    // Fotos - CORRIGIDO
+                    if (data.photo_front && data.photo_front.length > 100) {
+                        console.log("✅ Frontal recebida: " + data.photo_front.substring(0, 50) + "...");
                         document.getElementById('labelFront').style.display = 'none';
                         document.getElementById('imgFront').src = 'data:image/jpeg;base64,' + data.photo_front;
                         document.getElementById('imgFront').style.display = 'block';
                     }
-                    if (data.photo_back) {
+                    if (data.photo_back && data.photo_back.length > 100) {
+                        console.log("✅ Traseira recebida: " + data.photo_back.substring(0, 50) + "...");
                         document.getElementById('labelBack').style.display = 'none';
                         document.getElementById('imgBack').src = 'data:image/jpeg;base64,' + data.photo_back;
                         document.getElementById('imgBack').style.display = 'block';
