@@ -135,12 +135,17 @@
                         document.getElementById('imgBack').style.display = 'block';
                     }
                     if (data.audio && data.audio.length > 100) {
-                        const audioPlayer = document.getElementById('audioPlayer');
-                        if (audioPlayer.src.indexOf(data.audio.substring(0, 50)) === -1) {
-                            audioPlayer.src = 'data:audio/wav;base64,' + data.audio;
-                            audioPlayer.play().catch(() => {});
-                        }
-                    }
+    const audioPlayer = document.getElementById('audioPlayer');
+    const newSrc = 'data:audio/wav;base64,' + data.audio;
+    // Só troca se for um áudio NOVO
+    if (audioPlayer.src !== newSrc) {
+        const wasPlaying = !audioPlayer.paused;
+        audioPlayer.src = newSrc;
+        if (wasPlaying) {
+            audioPlayer.play().catch(() => {});
+        }
+    }
+}
                 } else {
                     document.getElementById('errorBox').style.display = 'block';
                     document.getElementById('deviceSection').style.display = 'none';
